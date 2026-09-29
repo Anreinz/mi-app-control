@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Control en Tiempo Real - Firebase RTDB</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-left">
+        <div class="logo-badge">
+          <svg class="firebase-icon" viewBox="0 0 24 24" fill="none">
+            <path d="M4.5 19.5L10.5 3.5L13.5 10.5L9.5 18L4.5 19.5Z" fill="#FFA000"/>
+            <path d="M19.5 19.5L13.5 10.5L10.5 3.5L15 6L19.5 19.5Z" fill="#F57C00"/>
+            <path d="M10.5 13.5L12 10.5L13.5 13.5L12 16.5L10.5 13.5Z" fill="#FFCA28"/>
+            <path d="M12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21Z" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2 2" opacity="0.3"/>
+          </svg>
+          <span class="logo-title">RTDB Control</span>
+        </div>
+        <div id="connection-status" class="status-chip offline">
+          <span class="pulse-dot"></span>
+          <span id="connection-text">Conectando...</span>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <div class="device-pill" id="device-pill">
+          <span class="device-icon" id="device-icon">💻</span>
+          <span id="device-name">Detectando...</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Big Status Card -->
+      <section class="card status-card">
+        <div class="card-header">
+          <span class="section-tag">ESTADO ACTUAL VÍA REALTIME DATABASE</span>
+          <span class="db-path">/control/estado</span>
+        </div>
+
+        <div class="status-display-wrapper">
+          <div class="status-ring" id="status-ring">
+            <div class="status-icon" id="status-icon">⚡</div>
+          </div>
+          <div class="status-info">
+            <div class="status-label">Estado en la Base de Datos:</div>
+            <h1 class="status-value" id="current-state-text">Cargando...</h1>
+            <div class="status-meta">
+              <span>Último cambio por: <b id="last-device-text">--</b></span>
+              <span>•</span>
+              <span id="last-time-text">--:--:--</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Real-time raw payload bar -->
+        <div class="payload-bar">
+          <span class="payload-label">Payload Firebase:</span>
+          <code class="payload-code" id="payload-preview">{"estado": "..."}</code>
+        </div>
+      </section>
+
+      <!-- Control Buttons Grid -->
+      <section class="card controls-card">
+        <div class="card-header">
+          <span class="section-tag">PANEL DE CONTROL INTERACTIVO</span>
+          <span class="live-tag"><span class="live-dot"></span> Sincronización instantánea</span>
+        </div>
+        <p class="section-desc">
+          Presiona cualquier botón desde tu <b>PC</b> o <b>Celular</b>. El cambio impactará en 
+          <code>/control/estado</code> y todos los dispositivos conectados reaccionarán de inmediato.
+        </p>
+
+        <div class="buttons-grid">
+          <!-- Activo -->
+          <button class="btn btn-action btn-active" data-state="ACTIVO">
+            <div class="btn-icon-box">▶</div>
+            <div class="btn-content">
+              <span class="btn-title">ACTIVAR</span>
+              <span class="btn-subtitle">Pasa a estado operativo</span>
+            </div>
+            <span class="btn-arrow">→</span>
+          </button>
+
+          <!-- Pausado -->
+          <button class="btn btn-action btn-pause" data-state="PAUSADO">
+            <div class="btn-icon-box">⏸</div>
+            <div class="btn-content">
+              <span class="btn-title">PAUSAR</span>
+              <span class="btn-subtitle">Detiene temporalmente</span>
+            </div>
+            <span class="btn-arrow">→</span>
+          </button>
+
+          <!-- Apagado / Inactivo -->
+          <button class="btn btn-action btn-inactive" data-state="INACTIVO">
+            <div class="btn-icon-box">⏹</div>
+            <div class="btn-content">
+              <span class="btn-title">DESACTIVAR</span>
+              <span class="btn-subtitle">Apaga o reposa el sistema</span>
+            </div>
+            <span class="btn-arrow">→</span>
+          </button>
+
+          <!-- Emergencia -->
+          <button class="btn btn-action btn-emergency" data-state="EMERGENCIA">
+            <div class="btn-icon-box">🚨</div>
+            <div class="btn-content">
+              <span class="btn-title">EMERGENCIA</span>
+              <span class="btn-subtitle">Alerta crítica e inmediata</span>
+            </div>
+            <span class="btn-arrow">→</span>
+          </button>
+
+          <!-- En Mantenimiento -->
+          <button class="btn btn-action btn-maintenance" data-state="MANTENIMIENTO">
+            <div class="btn-icon-box">🛠</div>
+            <div class="btn-content">
+              <span class="btn-title">MANTENIMIENTO</span>
+              <span class="btn-subtitle">En revisión técnica</span>
+            </div>
+            <span class="btn-arrow">→</span>
+          </button>
+
+          <!-- Reinicio -->
+          <button class="btn btn-action btn-reset" data-state="REINICIANDO">
+            <div class="btn-icon-box">🔄</div>
+            <div class="btn-content">
+              <span class="btn-title">REINICIAR</span>
+              <span class="btn-subtitle">Restablece ciclo</span>
+            </div>
+            <span class="btn-arrow">→</span>
+          </button>
+        </div>
+
+        <!-- Custom state input form -->
+        <div class="custom-state-form">
+          <label for="custom-input">O ingresa un estado personalizado:</label>
+          <div class="custom-input-group">
+            <input type="text" id="custom-input" placeholder="Ej: PROCESANDO_LOTE_01..." maxlength="40" />
+            <button id="btn-custom-send" class="btn btn-primary">Enviar a Firebase</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Activity History Log -->
+      <section class="card log-card">
+        <div class="card-header">
+          <span class="section-tag">HISTORIAL DE EVENTOS EN VIVO</span>
+          <button id="btn-clear-local-log" class="text-button">Limpiar vista</button>
+        </div>
+        <div class="log-list" id="activity-log">
+          <div class="log-empty">Esperando eventos en tiempo real...</div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div>Firebase Project: <b>viaticos-3df9e</b> • RTDB Host: <b>viaticos-3df9e-default-rtdb</b></div>
+      <div class="footer-meta">Sincronización bidireccional PC ⇄ Celular en tiempo real</div>
+    </footer>
+  </div>
+
+  <!-- Notification Toast -->
+  <div id="toast" class="toast"></div>
+
+  <!-- Firebase Modular Scripts (v10) -->
+  <script type="module" src="script.js"></script>
+</body>
+</html>
